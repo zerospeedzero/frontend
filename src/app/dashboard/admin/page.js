@@ -5,36 +5,35 @@ import Header from '@/components/Header'
 import NavBar from '@/components/AdminNavBar'
 import { useRouter } from 'next/navigation'
 import CreateActivity from '@/components/CreateActivity'
+import AdminActivityList from '@/components/AdminActivityList'
 
 const Dashboard  = () => {
-  const { data: session, status } = useSession();
-  const [isCreateActivityVisible, setIsCreateActivityVisible] = React.useState(false);
+  const router = useRouter();
+  const [page, setPage] = React.useState('AdminActivityList');
+  const [isCreateActivityVisible, setIsCreateActivityVisible] = React.useState(true);
   const openPopup = () => {
     setIsCreateActivityVisible(true);
   };
   const closePopup = () => {
     setIsCreateActivityVisible(false);
-  };  
-  if (status != 'authenticated') {
-    const router = useRouter();
-    router.push("/");
-  }  
+  };
+  const switchPage = (page) => {
+    // setPage(page);
+  }
+
   return (
     <>
       <Header/>
-      <div className='flex flex-row justify-start items-center'>
+      <div className='flex w-full min-h-screen flex-row justify-start items-start'>
         <NavBar/>
-        <div className='w-full h-[100vh] bg-gray-200 p-8 flex flex-col justify-start items-start'>
+        <div className='w-full min-h-[screen]  bg-gray-200 p-8 flex flex-col justify-start items-end'>
           <div className='h-[3rem align-baseline'>
-            <button className='bg-green-500 text-white p-2 m-2 rounded mb-4'>Volunteers Signed</button>
-            <button className='bg-green-500 text-white p-2  m-2 rounded mb-4'
-              onClick={openPopup}
+            <button className='bg-green-500 text-white p-2 m-2 rounded mb-4 hover:bg-green-900'>Volunteers Signed</button>
+            <button className='bg-green-500 text-white p-2  m-2 rounded mb-4 hover:bg-green-900'
             >
               + Create Activity
             </button>
-            {isCreateActivityVisible && (
-              <CreateActivity onClose={closePopup}/>
-            )}
+              <CreateActivity />
           </div>
         </div>
       </div>

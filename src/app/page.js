@@ -15,16 +15,13 @@ const index = () => {
   },[])
   console.log('session', session)
   // console.log('status', status)
-  if (status === 'authenticated') {
+  if (status == 'authenticated') {
     const router = useRouter();
     if (session.user.email === 'temp6666temp@gmail.com') {
       router.push("/dashboard/admin");
     } else {
       router.push("/dashboard/users");
     }
-    // console.log(session)
-    // router.push("/dashboard");
-    // return null;
   }  
   return (
     <>

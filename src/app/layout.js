@@ -11,7 +11,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       {/* <body className={inter.className }> */}
-      <body className="{inter.className} max-w-7xl mx-auto h-screen bg-white" >
+      <body className="{inter.className} max-w-7xl min-h-screen mx-auto bg-p1" >
         <AppLayout>
           {children}
         </AppLayout>

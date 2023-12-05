@@ -92,15 +92,15 @@ const Register = () => {
   return (
     <>
       {isLoading ? <Spinner /> : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 ">
           {/* Left Panel */}
-          <form className="p-8" onSubmit={handleSubmit}>
-            <h1 className="text-4xl font-bold mb-4">Hello Parent</h1>
-            <p className="text-gray-600 mb-8">Enter your credentials to create your account</p>
+          <form className="p-24 bg-p1 text-white flex flex-col justify-center" onSubmit={handleSubmit}>
+            <h1 className="text-4xl font-bold mb-4">HELLO PARENTS</h1>
+            <p className=" mb-8">Enter your credentials to create your account</p>
     
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="w-full">
-                <label htmlFor="parentFirstName" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="parentFirstName" className="block text-sm font-medium ">
                   Parent First name
                 </label>
                 <input
@@ -110,12 +110,12 @@ const Register = () => {
                   required
                   value={formData.parentFirstName}
                   onChange={(e) => handleChange('parentFirstName', e.target.value)}
-                  className="mt-1 p-2 border rounded w-full"
+                  className="mt-1 p-2 text-black border rounded w-full"
                 />
               </div>
     
               <div className="w-full">
-                <label htmlFor="parentLastName" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="parentLastName" className="block text-sm font-medium ">
                   Parent Last name
                 </label>
                 <input
@@ -125,7 +125,7 @@ const Register = () => {
                   required
                   value={formData.parentLastName}
                   onChange={(e) => handleChange('parentLastName', e.target.value)}
-                  className="mt-1 p-2 border rounded w-full"
+                  className="mt-1 p-2 text-black border rounded w-full"
                 />
               </div>
             </div>
@@ -133,7 +133,7 @@ const Register = () => {
             {formData.children.map((child, index) => (
               <div key={index} className="grid grid-cols-2 gap-4 mb-4">
                 <div className="w-full">
-                  <label htmlFor={`childFirstName${index}`} className="block text-sm font-medium text-gray-700">
+                  <label htmlFor={`childFirstName${index}`} className="block text-sm font-medium ">
                     Child First name
                   </label>
                   <input
@@ -143,12 +143,12 @@ const Register = () => {
                     required
                     value={child.childFirstName}
                     onChange={(e) => handleChange('childFirstName', e.target.value, index)}
-                    className="mt-1 p-2 border rounded w-full"
+                    className="mt-1 text-black p-2 border rounded w-full"
                   />
                 </div>
     
                 <div className="w-full">
-                  <label htmlFor={`childLastName${index}`} className="block text-sm font-medium text-gray-700">
+                  <label htmlFor={`childLastName${index}`} className="block text-sm font-medium ">
                     Child Last name
                   </label>
                   <input
@@ -158,19 +158,21 @@ const Register = () => {
                     required
                     value={child.childLastName}
                     onChange={(e) => handleChange('childLastName', e.target.value, index)}
-                    className="mt-1 p-2 border rounded w-full"
+                    className="mt-1 p-2 text-black border rounded w-full"
                   />
                 </div>
               </div>
             ))}
-    
-            <button onClick={handleAddChild} className="w-full bg-p2  text-black p-2 rounded mb-4">
-              Add Child
-            </button>
-    
+            <div className='w-full flex flex-row justify-end -mt-4' >
+              <span className='text-xs justify-self-end hover:text-p2 cursor-pointer'
+                onClick={handleAddChild}
+              >
+                + add another child
+              </span>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div className="w-full col-span-2">
-                <label htmlFor="email" className=" block text-sm font-medium text-gray-700">
+                <label htmlFor="email" className=" block text-sm font-medium ">
                   Email Address
                 </label>
                 <input
@@ -180,12 +182,12 @@ const Register = () => {
                   required
                   value={formData.email}
                   onChange={(e) => handleChange('email', e.target.value)}
-                  className="mt-1 p-2 border rounded w-full"
+                  className="mt-1 p-2 text-black border rounded w-full"
                 />
               </div>
     
               <div className="w-full col-span-2">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="block text-sm font-medium ">
                   Password
                 </label>
                 <input
@@ -196,13 +198,13 @@ const Register = () => {
                   value={formData.password}
                   pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
                   onChange={(e) => handleChange('password', e.target.value)}
-                  className="mt-1 p-2 border rounded w-full"
+                  className="mt-1 p-2 text-black border rounded w-full"
                 />
               </div>
             </div>
     
             <div className="w-full mb-4 col-span-2">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium ">
                 Confirm Password
               </label>
               <input
@@ -213,19 +215,17 @@ const Register = () => {
                 value={formData.confirmPassword}
                 pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
                 onChange={(e) => handleChange('confirmPassword', e.target.value)}
-                className="mt-1 mb-4 p-2 border rounded w-full"
+                className="mt-1 mb-4 p-2 text-black border rounded w-full"
               />
               <span className='text-xs'>Requires at least 8 characters with at least one number, one lowercase letter, and one uppercase letter</span>
             </div>
     
-            <input type="submit" className="w-full mt-4 bg-p1/80  text-white p-2 rounded mb-4" value="Create"/>
-              {/* Create
-            </input> */}
+            <input type="submit" className="w-full mt-4 bg-p2  text-s1 font-bold p-2 rounded mb-4" value="Create"/>
     
-            <p>
+            <p className='text-p2'>
               Already have an account?{' '}
               <a href="/auth/login" className="text-s1">
-                Login
+                <span className='underline'>Login</span>
               </a>
             </p>
             {/* <div className='flex flex-col justify-center items-center mt-8 h-[30%]'>
