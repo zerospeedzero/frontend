@@ -7,6 +7,7 @@ import Spinner from './Spinner';
 import ReportHoursPopup from './ReportHoursPopup';
 import { GiCancel } from "react-icons/gi";
 import axios from 'axios';
+import InfoBox from '@/components/Infobox';
 
 const ActivityList = () => {
   const { data: session } = useSession();
@@ -16,14 +17,16 @@ const ActivityList = () => {
   const [refresh, setRefresh] = useState(false);
 
   const [isPopupVisible, setPopupVisible] = useState(false);
-  const [selectedActivityId, setSelectedActivityId] = useState(null);
-  const handleOpenPopup = (activityId) => {
-    setSelectedActivityId(activityId);
-    setPopupVisible(true);
-  };
 
+  const [selectedRegistrationId, setSelectedRegistrationId] = useState(null);
+
+  const handleOpenPopup = (selectedRegistrationId) => {
+    if (selectedRegistrationId != null) {
+      setPopupVisible(true);
+    }
+  };
   const handleClosePopup = () => {
-    setSelectedActivityId(null);
+    setSelectedRegistrationId(null);
     setPopupVisible(false);
     setRefresh(!refresh);
   };
@@ -84,8 +87,12 @@ const ActivityList = () => {
     <div className="container mx-auto mt-8">
       <h1 className="text-2xl font-bold mb-4">My registrations</h1>
       <div className="grid grid-cols-1 gap-4">
-        {registrations && registrations.map((registration) => (
-          <div key={registration.id} className="bg-white p-4 rounded shadow">
+        {registrations && registrations.map((registration, index) => (
+          <motion.div key={registration.id} className="bg-white p-4 rounded shadow"
+            initial={{ opacity: 0, x: -100 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: (0.2 + index/3), duration: 0.5 }}
+          >
             <div className='relative'>
               <p className='mb-4'>
                 <strong>Activity Name:</strong> {registration.attributes.activityId.data.attributes.name}
@@ -109,18 +116,19 @@ const ActivityList = () => {
               <p><strong>Reported Hours:</strong> {registration.attributes.reportedHours}</p>
               <p><strong>Left Hours:</strong> {registration.attributes.requiredHours - registration.attributes.reportedHours}</p>
               <button className='w-[6rem] bg-p1/80  text-p2 hover:bg-p1 text-white font-bold py-1 px-2 rounded'
-                onClick={() => {handleOpenPopup(registration.id) }}
+                // onClick={() => {handleOpenPopup(registration.id) }}
+                onClick={() => {setSelectedRegistrationId(registration.id); setTimeout(() => {handleOpenPopup(registration.id)}, 500)}}
               >
                 Report
               </button>
             </div>
             {isPopupVisible && (
               <ReportHoursPopup
-              registrationId={registration.id}
+              registrationId={selectedRegistrationId}
                 onClose={handleClosePopup}
               />
-            )}      
-          </div>
+            )} 
+          </motion.div>
         ))}
       </div>
     </div>

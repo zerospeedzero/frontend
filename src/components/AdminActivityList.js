@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import Spinner from './Spinner';
 import axios from 'axios';
+import Link from 'next/link';
 
 const ActivityList = () => {
   const { data: session } = useSession();
@@ -13,7 +14,25 @@ const ActivityList = () => {
   const [filterStartDate, setFilterStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [filterEndDate, setFilterEndDate] = useState(new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0]);
   const [searchTerm, setSearchTerm] = useState('')
-
+  const [refresh, setRefresh] = useState(false)
+  
+  const calculateAvailableSeats = (activities) => {
+    var newActivities = [...activities]
+    newActivities.forEach((activity, iindex) => {
+      activity.attributes.registrations.data.forEach((registration, rindex) => {
+        if (registration.attributes.weeklyId > 0) {
+          const weeklyIndex = newActivities[iindex].attributes.weeklyFields.findIndex(weeklyField => weeklyField.id === registration.attributes.weeklyId)
+          newActivities[iindex].attributes.weeklyFields[weeklyIndex].availableSeats = newActivities[iindex].attributes.weeklyFields[weeklyIndex].availableSeats  - 1
+        } else if (registration.attributes.monthlyId > 0) {
+          const monthlyIndex = newActivities[iindex].attributes.monthlyFields.findIndex(monthlyField => monthlyField.id === registration.attributes.monthlyId)
+          newActivities[iindex].attributes.monthlyFields[monthlyIndex].availableSeats = newActivities[iindex].attributes.monthlyFields[monthlyIndex].availableSeats - 1
+        } else {
+          newActivities[iindex].attributes.availableSeats = activity.attributes.availableSeats - 1
+        }
+      })
+    })
+    setActivities(newActivities)
+  }
   const handleSearch = (value) => {
     setSearchTerm(value)
   }
@@ -33,7 +52,10 @@ const ActivityList = () => {
       setFilterEndDate(new Date(new Date().setFullYear(new Date().getFullYear() + 10)).toISOString().split('T')[0]);
     }
   }
-  const handleRegister = async (activityId, monthlyId, weeklyId, requiredHours) => {
+  const handleRegister = async (activityId, monthlyId, weeklyId, requiredHours, duration) => {
+    // console.log('start')
+    // console.log(duration)
+    // console.log('end')
     const postData = {
       "data": {
         email: session.id,
@@ -41,12 +63,13 @@ const ActivityList = () => {
         monthlyId: monthlyId | null,
         weeklyId: weeklyId | null,
         requiredHours: requiredHours | 12,
-        recordedHours: 0
+        reportedHours: 0,
+        duration: duration
       }
     }
     // Handle registration logic here
-    console.log(session.jwt)
-    console.log(postData)
+    // console.log(session.jwt)
+    // console.log(postData)
     try {
       setIsLoading(true);
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/registrations`, postData, {
@@ -55,11 +78,18 @@ const ActivityList = () => {
           'Content-Type': 'application/json',
         },
       });
-      console.log(response.data);
+      // console.log(response.data);
+      setRefresh(!refresh)
     } catch (error) {
       console.error('Error submitting form:', error);
     }
   };
+  const availableSeats = (activity) => {
+    // console.log(activity.attributes.monthlyFields.reduce((acc, items) => acc + items.availableSeats, 0))
+    if (activity.attributes.monthlyFields.length > 0 && activity.attributes.monthlyFields.reduce((acc, items) => acc + items.availableSeats, 0) == 0) {
+      return '- Full'
+    }
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,30 +101,45 @@ const ActivityList = () => {
           },          
         });
         const data = await response.json();
-        setActivities(data.data);
+        calculateAvailableSeats(data.data)
+        // setActivities(data.data);
       } catch (error) {
         console.error('Error fetching activities:', error);
       }
     };
-    
     fetchData();
-  }, []);
-  
+
+  }, [session, refresh]);
+  // useEffect(() => {
+  //   calculateAvailableSeats(activities)
+  //   console.log('here')
+  //   // console.log(activities)
+  //   console.log('there')
+  // }, [activities]); 
   console.log(activities)
+
   return (
     <div className="flex flex-col text-p1 space-y-4">
-      <div className='flex flex-row justify-end items-center mb-2'>
-      <input type="text" placeholder="Search..." className="input input-bordered max-w-ws mr-4 max-w-xs"
-        onChange={e=> {handleSearch(e.target.value)}}
-      />
-        <select className="select  select-bordered max-w-xs"
-          onChange={e=> handleTimeFilter(e.target.value)}
+      <div className='flex flex-row justify-between items-center mb-2'>
+        <Link href='/dashboard/admin/createActivity'
+          className='bg-green-600 text-white px-4 py-3 rounded-md mr-2'
         >
-          <option value='one-month'>One month</option>
-          <option value='three-months' selected>Three months</option>
-          <option value='future'>Future</option>
-          <option value='all'>All</option>
-        </select>        
+          Create Activity
+        </Link>
+        <div>
+          <input type="text" placeholder="Search..." className="input input-bordered max-w-ws mr-4 max-w-xs"
+            onChange={e=> {handleSearch(e.target.value)}}
+          />
+          <select className="select  select-bordered max-w-xs"
+            onChange={e=> handleTimeFilter(e.target.value)}
+            defaultValue={'three-months'}
+            >
+            <option value='one-month'>One month</option>
+            <option value='three-months'>Three months</option>
+            <option value='future'>Future</option>
+            <option value='all'>All</option>
+          </select>        
+        </div>
       </div>
       {activities
         .filter((activity) => activity.attributes.name.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -104,8 +149,20 @@ const ActivityList = () => {
           animate={{ opacity: 1, x:0 }}
           transition={{ delay: (index/4), duration: 1}}
         >
-          <h2 className="text-xl font-semibold mb-6">Activity: {activity.attributes.name}</h2>
-          <p className="text-gray-600">Description: {activity.attributes.description}</p>
+          <h2 className="text-xl font-semibold mb-6">Activity: {activity.attributes.name} {availableSeats(activity)}</h2>
+          <div className='grid grid-cols-4 gap-2'>
+            <p className=" col-span-3 text-gray-600">Description: {activity.attributes.description}</p>
+            {activity.attributes.media.data && (
+              <motion.img
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ delay: (0.5 ), duration: 0.8 }}
+                className='col-span-1 rounded-lg shadow-md justify-self-end p-2 bg-white'
+                src={`${process.env.NEXT_PUBLIC_API_URL}` + activity.attributes.media.data.attributes.formats.thumbnail.url}
+                >
+              </motion.img>
+              )}
+          </div>
           <p>Start Date: {activity.attributes.startDate} End Date: {activity.attributes.endDate}</p>
           <p>Start time: {activity.attributes.startTime} End time: {activity.attributes.endTime}</p>
           <p>Expected earned hour per session: {activity.attributes.estimatedHoursEarned}</p>
@@ -117,20 +174,20 @@ const ActivityList = () => {
                   <p>Seats: {activity.attributes.seats}</p>
                   <p>Available seats: {activity.attributes.availableSeats}</p>
                 </div>
-                <button
-                  onClick={() => handleRegister(activity.id,null, null, activity.attributes.estimatedHoursEarned)}
-                  disabled={activity.availableSeats === 0}
-                  className={`ml-4 px-4 py-2 rounded ${
-                    activity.availableSeats === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-p2 text-black'
+                {/* <button
+                  onClick={() => handleRegister(activity.id,null, null, activity.attributes.estimatedHoursEarned, activity.attributes.startDate + ' - ' + activity.attributes.endDate)}
+                  disabled={activity.attributes.availableSeats <= 0}
+                  className={`w-[6rem] ml-4 px-4 py-2 rounded ${
+                    activity.attributes.availableSeats === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-p2 text-black'
                   }`}
                 >
-                  {activity.availableSeats === 0 ? 'Full' : 'Register'}
-                </button>                
+                  {activity.attributes.availableSeats === 0 ? 'Full' : 'Register'}
+                </button>                 */}
               </div>
             )}
             {/* Weekly Fields */}
             {activity.attributes.weeklyFields && activity.attributes.weeklyFields.length > 0 && (
-              <div className='collapse  border border-gray-200 bg-p1/400'>
+              <div className='collapse collapse-open border border-gray-200 bg-p1/400'>
                 <input type="checkbox"/>
                 <div className='collapse-title collapse-plus flex flex-row justify-between items-center rounded-none mb-2 bg-p1/20'>
                   <h3 className="text-lg font-semibold mb-2">Weekly slots</h3>
@@ -153,15 +210,15 @@ const ActivityList = () => {
                         <span className='col-span-2' >{`Week: ${weeklyField.weekStartDate} - ${weeklyField.weekEndDate}`}</span>
                         <span className='col-span-1'>{`Seats: ${weeklyField.seats}`}</span>
                         <span className='col-span-1'>{`Available Seats: ${weeklyField.availableSeats}`}</span>
-                        <button
-                          onClick={() => handleRegister(activity.id, '', weeklyField.id, weeklyField.estimatedHoursEarned)}
-                          disabled={weeklyField.availableSeats === 0}
-                          className={`ml-4 px-4 py-2 justify-self-end rounded-md col-span-1  ${
+                        {/* <button
+                          onClick={() => handleRegister(activity.id, '', weeklyField.id, weeklyField.estimatedHoursEarned, weeklyField.weekStartDate + ' - ' + weeklyField.weekEndDate)}
+                          disabled={weeklyField.availableSeats <= 0}
+                          className={`w-[6rem] ml-4 px-4 py-2 justify-self-end rounded-md col-span-1  ${
                             weeklyField.availableSeats === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-p2 text-black'
                           }`}
                         >
                           {weeklyField.availableSeats === 0 ? 'Full' : 'Register'}
-                        </button>
+                        </button> */}
                       </motion.li>
                     ))}
                   </ul>
@@ -171,7 +228,7 @@ const ActivityList = () => {
 
             {/* Monthly Fields */}
             {activity.attributes.monthlyFields && activity.attributes.monthlyFields.length > 0 && (
-              <div className='collapse  border border-gray-200 bg-p1/400 rounded-md' >
+              <div className='collapse  collapse-open border border-gray-200 bg-p1/400 rounded-md' >
                 <input type="checkbox"/> 
                 <div className='collapse-title  flex flex-row justify-between items-center rounded-none mb-2 bg-p1/20'>
                   <h3 className="text-lg font-semibold  py-0 mb-2 mt-2">Monthly slots</h3>
@@ -194,15 +251,15 @@ const ActivityList = () => {
                         <span className='col-span-1'>{`Month: ${monthlyField.monthName}`}</span>
                         <span className='col-span-1'>{`Seats: ${monthlyField.seats}`}</span>
                         <span className='col-span-1'>{`Available Seats: ${monthlyField.availableSeats}`}</span>
-                        <button
-                          onClick={() => handleRegister(activity.id, monthlyField.id, '', monthlyField.estimatedHoursEarned)}
-                          disabled={monthlyField.availableSeats === 0}
-                          className={`ml-4 px-4 py-2 justify-self-end rounded col-span-1 ${
+                        {/* <button
+                          onClick={() => handleRegister(activity.id, monthlyField.id, '', monthlyField.estimatedHoursEarned, monthlyField.monthName)}
+                          disabled={monthlyField.availableSeats <= 0}
+                          className={`w-[6rem] ml-4 px-4 py-2 justify-self-end rounded col-span-1 ${
                             monthlyField.availableSeats === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-p2 text-black'
                           }`}
                         >
                           {monthlyField.availableSeats === 0 ? 'Full' : 'Register'}
-                        </button>
+                        </button> */}
                       </motion.li>
                     ))}
                   </ul>

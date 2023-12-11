@@ -1,4 +1,5 @@
 // EventForm.js
+'use client'
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useSession } from 'next-auth/react';
@@ -19,7 +20,6 @@ const EventForm = ({ setPage }) => {
     endTime: '17:00:00',
     repeat: 'Please-choose',
   });
-
   const [weeklyFields, setWeeklyFields] = useState([]);
   const [monthlyFields, setMonthlyFields] = useState([]);
 
@@ -73,7 +73,7 @@ const EventForm = ({ setPage }) => {
       console.log(response.data);
       setTimeout(() => { 
         setIsLoading(false);
-        // setPage('AdminActivityList'); 
+        // setPage('AdminActivityList');
       }, 1000);
     } catch (error) {
       console.error('Error submitting form:', error);

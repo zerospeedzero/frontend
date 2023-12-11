@@ -21,7 +21,7 @@ const Dashboard  = () => {
       <Header/>
       <div className='flex flex-row justify-start items-start'>
         <NavBar/>
-        <div className='w-full min-h-[100vh] bg-gray-200  p-8 flex flex-col justify-start items-start'>
+        <div className='w-full min-h-[100vh] bg-gray-200  p-8 flex flex-col justify-start items-center'>
           <div className='h-[3rem align-baseline'>
             <Hours />
           </div>

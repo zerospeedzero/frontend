@@ -28,13 +28,13 @@ const Dashboard  = () => {
         <NavBar/>
         <div className='w-full min-h-[screen]  bg-gray-200 p-8 flex flex-col justify-start items-end'>
           <div className='h-[3rem align-baseline'>
-            <button className='bg-green-500 text-white p-2 m-2 rounded mb-4 hover:bg-green-900'>
+            {/* <button className='bg-green-500 text-white p-2 m-2 rounded mb-4 hover:bg-green-900'>
               Volunteers Signed
             </button>
             <button className='bg-green-500 text-white p-2  m-2 rounded mb-4 hover:bg-green-900'
             >
               + Create Activity
-            </button>
+            </button> */}
               <CreateActivity />
           </div>
         </div>
