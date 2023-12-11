@@ -6,6 +6,7 @@ import {motion} from 'framer-motion';
 import {CgProfile} from 'react-icons/cg';
 import { useRouter } from 'next/navigation';
 import { isAuth } from '@/lib/isAuth';
+import Link from 'next/link';
 
 const Header = () => {
   const router = useRouter();
@@ -19,7 +20,7 @@ const Header = () => {
   //   router.push("/auth/login");
   // }
   // if (!isAuth()) {router.push("/auth/login");}
-  console.log(session)
+  // console.log(session)
   return (
     <>
       <motion.div className='h-22 p-4  flex flex-row justify-between items-center  text-white'
@@ -34,8 +35,11 @@ const Header = () => {
           // animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 1.2, type: 'spring', stiffness: 100, duration: 1 }}
           whileHover={{ scale: 1.1 }}
+          
         >
-          <img className='h-14 ml-16' src='/images/logo.png' alt='logo'/>
+          <Link href='/'>
+            <img className='h-14 ml-16' src='/images/logo.png' alt='logo'/>
+          </Link>
         </motion.div>
         {session && (
             <motion.div

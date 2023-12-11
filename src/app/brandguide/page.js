@@ -1,12 +1,10 @@
 'use client'
 import React from 'react'
-import { useSession } from 'next-auth/react'
 import Header from '@/components/Header'
-import NavBar from '@/components/NavBar'
 import { useRouter } from 'next/navigation'
-import AdminActivityList from '@/components/AdminActivityList';
 
-const Dashboard  = () => {
+
+const PDFViewer = () => {
   const router = useRouter();
   const [isCreateActivityVisible, setIsCreateActivityVisible] = React.useState(false);
   const openPopup = () => {
@@ -19,15 +17,13 @@ const Dashboard  = () => {
     <>
       <Header/>
       <div className='flex flex-row justify-start items-center'>
-        <NavBar/>
-        <div className='w-full h-[100vh] bg-gray-200  p-8 flex flex-col justify-start items-start'>
-          <div className='h-[3rem align-baseline'>
-            <AdminActivityList />
-          </div>
-        </div>
+        {/* <NavBar/> */}
+        {/* <div className='w-full h-[100vh] bg-gray-200  p-8 flex flex-col justify-start items-start'> */}
+          {/* <div className='h-[3rem align-baseline'> */}
+          <iframe className='w-screen  h-screen' src='./Binder2.pdf'  ></iframe>
+          {/* </div> */}
+        {/* </div> */}
       </div>
     </>
   )
 }
-
-export default Dashboard

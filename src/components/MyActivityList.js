@@ -4,43 +4,65 @@ import { BiExpandVertical } from "react-icons/bi";
 import { motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import Spinner from './Spinner';
+import ReportHoursPopup from './ReportHoursPopup';
+import { GiCancel } from "react-icons/gi";
 import axios from 'axios';
 
 const ActivityList = () => {
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [registrations, setRegistrations] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [refresh, setRefresh] = useState(false);
 
+  const [isPopupVisible, setPopupVisible] = useState(false);
+  const [selectedActivityId, setSelectedActivityId] = useState(null);
+  const handleOpenPopup = (activityId) => {
+    setSelectedActivityId(activityId);
+    setPopupVisible(true);
+  };
 
+  const handleClosePopup = () => {
+    setSelectedActivityId(null);
+    setPopupVisible(false);
+    setRefresh(!refresh);
+  };
 
-  // const handleRegister = async (activityId, monthlyId, weeklyId) => {
-  //   const postData = {
-  //     "data": {
-  //       email: session.id,
-  //       activityId: activityId,
-  //       monthlyId: monthlyId | null,
-  //       weeklyId: weeklyId | null
-  //     }
-  //   }
-  //   // Handle registration logic here
-  //   console.log(session.jwt)
-  //   console.log(postData)
-  //   try {
-  //     setIsLoading(true);
-  //     const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/registrations`, postData, {
-  //       headers: {
-  //         Authorization: `Bearer ${session.jwt}`,
-  //         'Content-Type': 'application/json',
-  //       },
-  //     });
-  //     console.log(response.data);
-  //   } catch (error) {
-  //     console.error('Error submitting form:', error);
-  //   }
-  // };
+  const handleDelete = async (id) => { 
+    try {
+      const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/registrations/` + id,
+      {
+        headers: {
+          Authorization: `Bearer ${session.jwt}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      // console.log(response.data); // Log the response if needed
+    } catch (error) {
+      console.error('Error reporting hours:', error);
+    }
+    setRefresh(!refresh);
+  }
+  
 
   useEffect(() => {
+    if (!session) return;
     const fetchData = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/activities?populate=*`, {
+          headers: {
+            Authorization: `Bearer ${session.jwt}`,
+            'Content-Type': 'application/json',
+          },          
+        });
+        const data = await response.json();
+        setActivities(data.data);
+      } catch (error) {
+        console.error('Error fetching activities:', error);
+      }
+    };
+    fetchData();    
+    const fetchRegistrationData = async () => {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/registrations?populate=*`, {
           headers: {
@@ -54,29 +76,50 @@ const ActivityList = () => {
         console.error('Error fetching registration:', error);
       }
     };
-    
-    fetchData();
-  }, []);
-  console.log(registrations) 
+    fetchRegistrationData();
+  }, [session, refresh]);
+  // console.log(registrations) 
+  // console.log(activities)
   return (
     <div className="container mx-auto mt-8">
-      <h1 className="text-2xl font-bold mb-4">Registrations List</h1>
+      <h1 className="text-2xl font-bold mb-4">My registrations</h1>
       <div className="grid grid-cols-1 gap-4">
         {registrations && registrations.map((registration) => (
           <div key={registration.id} className="bg-white p-4 rounded shadow">
-            <p className='mb-4'>
-              <strong>Activity Name:</strong> {registration.attributes.activityId.data.attributes.name}
-            </p>
+            <div className='relative'>
+              <p className='mb-4'>
+                <strong>Activity Name:</strong> {registration.attributes.activityId.data.attributes.name}
+              </p>
+              <div className='absolute right-0 top-0'>
+                <GiCancel className='text-2xl cursor-pointer'
+                  onClick={() => {handleDelete(registration.id)} }
+                />
+              </div>
+            </div>
             <p className='mb-4'>
               <strong>Activity Description:</strong>{' '}
               {registration.attributes.activityId.data.attributes.description}
             </p>
-            <div className='grid grid-cols-3 grid-gap-4 mb-4'>
+            <p className='mb-4'>
+              <strong>Activity Duration:</strong>{' '}
+              {registration.attributes.duration}
+            </p>
+            <div className='grid grid-cols-4 grid-gap-4 mb-4'>
               <p><strong>Required Hours:</strong> {registration.attributes.requiredHours}</p>
-              <p><strong>Reported Hours:</strong> {registration.attributes.recordedHours}</p>
-              <p><strong>Left Hours:</strong> {registration.attributes.requiredHours - registration.attributes.recordedHours}</p>
+              <p><strong>Reported Hours:</strong> {registration.attributes.reportedHours}</p>
+              <p><strong>Left Hours:</strong> {registration.attributes.requiredHours - registration.attributes.reportedHours}</p>
+              <button className='w-[6rem] bg-p1/80  text-p2 hover:bg-p1 text-white font-bold py-1 px-2 rounded'
+                onClick={() => {handleOpenPopup(registration.id) }}
+              >
+                Report
+              </button>
             </div>
-
+            {isPopupVisible && (
+              <ReportHoursPopup
+              registrationId={registration.id}
+                onClose={handleClosePopup}
+              />
+            )}      
           </div>
         ))}
       </div>

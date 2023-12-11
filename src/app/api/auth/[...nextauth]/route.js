@@ -29,6 +29,7 @@ const handler = NextAuth({
             password: credentials.password,
           });
           return { ...user, jwt };
+          // return data;
         } catch (error) {
           // Sign In Fail
           return null;
@@ -43,10 +44,24 @@ const handler = NextAuth({
       // console.log('token', token)
       session.id = token.id;
       session.jwt = token.jwt;
+      session.user.data = token.data;
       return Promise.resolve(session);
     },
     jwt: async ({ token, account, user }) => {
       // console.log(user)
+      // token.accessToken = user.jwt
+      const userData = await fetch(
+        `${process.env.STRAPI_BACKEND_URL}/api/users/me?populate=*`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token.jwt}`,
+          }
+        }
+      )
+      if(userData) {
+        const data = await userData.json();
+        token.data = data
+      }
       const isSignIn = user ? true : false;
       if (isSignIn) {
         token.id = user.id;

@@ -20,7 +20,7 @@ const index = () => {
     if (session.user.email === 'temp6666temp@gmail.com') {
       router.push("/dashboard/admin");
     } else {
-      router.push("/dashboard/users");
+      router.push("/dashboard/users/all");
     }
   }  
   return (
@@ -28,7 +28,7 @@ const index = () => {
       { isloading ? (
         <Spinner/>
       ):(
-        <div className='w-screen h-screen flex flex-col justify-center items-center'>
+        <div className='w-screen h-screen flex flex-col justify-center items-center text-white'>
           <h2 className='text-4xl mb-6'>P.L.A.Y. Volunteer</h2>
           <p className='mb-6'>To access this service. Please click below button for login</p>
           <Link href="/auth/login">
