@@ -29,6 +29,7 @@ const ActivityList = () => {
 
 
   useEffect(() => {
+    if (!session) return;
     const fetchData = async () => {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/activities?populate=*`, {
@@ -46,7 +47,9 @@ const ActivityList = () => {
     fetchData();    
     const fetchRegistrationData = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/registrations?populate=*`, {
+        // const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/registrations??filters[email][id]=${session.id}&populate=*`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/registrations?filters[email][id]=${session.id}&populate=*`, {
+  
           headers: {
             Authorization: `Bearer ${session.jwt}`,
             'Content-Type': 'application/json',
@@ -79,18 +82,6 @@ const ActivityList = () => {
           <h2 className="text-2xl font-bold">{totalRequiredHours - totalReportedHours}</h2>
         </div>                
       </div>
-      {/* <div className="flex flex-col md:flex-row justify-between items-center mb-4">
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-4">
-            <h2 className="text-xl font-bold mr-2">Required hours:</h2>
-            <h2 className="text-xl font-bold">{totalRequiredHours}</h2>
-          </div>
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <h2 className="text-xl font-bold mr-2">Reported hours:</h2>
-            <h2 className="text-xl font-bold">{totalReportedHours}</h2>
-          </div>
-        </div>
-      </div> */}
     </div>
     );
   };

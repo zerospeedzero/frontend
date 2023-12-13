@@ -15,7 +15,34 @@ const ActivityList = () => {
   const [filterEndDate, setFilterEndDate] = useState(new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0]);
   const [searchTerm, setSearchTerm] = useState('')
   const [refresh, setRefresh] = useState(false)
-  
+
+  const [isPopupVisible, setPopupVisible] = useState(false);
+
+  const [selectedRegistrationId, setSelectedRegistrationId] = useState(null);
+  const [sortedRegistrations, setSortedRegistrations] = useState([]);
+
+  useEffect(() => {
+    if (selectedRegistrationId) {
+      const sortedData = [...selectedRegistrationId].sort((a, b) => {
+        // Assuming duration is a number, adjust the comparison logic if it's not
+        return a.attributes.duration - b.attributes.duration;
+      });
+      setSortedRegistrations(sortedData);
+    }
+  }, [selectedRegistrationId]);
+
+
+  const handleOpenPopup = (selectedRegistrationId) => {
+    // if (selectedRegistrationId != null) {
+      setPopupVisible(true);
+    // }
+  };
+  const handleClosePopup = () => {
+    setSelectedRegistrationId(null);
+    setPopupVisible(false);
+    setRefresh(!refresh);
+  };
+
   const calculateAvailableSeats = (activities) => {
     var newActivities = [...activities]
     newActivities.forEach((activity, iindex) => {
@@ -52,38 +79,54 @@ const ActivityList = () => {
       setFilterEndDate(new Date(new Date().setFullYear(new Date().getFullYear() + 10)).toISOString().split('T')[0]);
     }
   }
-  const handleRegister = async (activityId, monthlyId, weeklyId, requiredHours, duration) => {
-    // console.log('start')
-    // console.log(duration)
-    // console.log('end')
-    const postData = {
-      "data": {
-        email: session.id,
-        activityId: activityId,
-        monthlyId: monthlyId | null,
-        weeklyId: weeklyId | null,
-        requiredHours: requiredHours | 12,
-        reportedHours: 0,
-        duration: duration
-      }
-    }
-    // Handle registration logic here
-    // console.log(session.jwt)
-    // console.log(postData)
+  const handleShowRegistration = async (activityId) => {
     try {
-      setIsLoading(true);
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/registrations`, postData, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/registrations/?filters[activityId][id]=${activityId}&populate=*`
+        ,{
         headers: {
           Authorization: `Bearer ${session.jwt}`,
           'Content-Type': 'application/json',
         },
       });
-      // console.log(response.data);
-      setRefresh(!refresh)
-    } catch (error) {
-      console.error('Error submitting form:', error);
+      setSelectedRegistrationId(response.data.data)
+      handleOpenPopup(selectedRegistrationId)
     }
-  };
+    catch (error) {
+      console.error('Error fetching registration:', error);
+    }
+  }
+  // const handleRegister = async (activityId, monthlyId, weeklyId, requiredHours, duration) => {
+  //   // console.log('start')
+  //   // console.log(duration)
+  //   // console.log('end')
+  //   const postData = {
+  //     "data": {
+  //       email: session.id,
+  //       activityId: activityId,
+  //       monthlyId: monthlyId | null,
+  //       weeklyId: weeklyId | null,
+  //       requiredHours: requiredHours | 12,
+  //       reportedHours: 0,
+  //       duration: duration
+  //     }
+  //   }
+  //   // Handle registration logic here
+  //   // console.log(session.jwt)
+  //   // console.log(postData)
+  //   try {
+  //     setIsLoading(true);
+  //     const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/registrations`, postData, {
+  //       headers: {
+  //         Authorization: `Bearer ${session.jwt}`,
+  //         'Content-Type': 'application/json',
+  //       },
+  //     });
+  //     // console.log(response.data);
+  //     setRefresh(!refresh)
+  //   } catch (error) {
+  //     console.error('Error submitting form:', error);
+  //   }
+  // };
   const availableSeats = (activity) => {
     // console.log(activity.attributes.monthlyFields.reduce((acc, items) => acc + items.availableSeats, 0))
     if (activity.attributes.monthlyFields.length > 0 && activity.attributes.monthlyFields.reduce((acc, items) => acc + items.availableSeats, 0) == 0) {
@@ -108,7 +151,6 @@ const ActivityList = () => {
       }
     };
     fetchData();
-
   }, [session, refresh]);
   // useEffect(() => {
   //   calculateAvailableSeats(activities)
@@ -116,7 +158,8 @@ const ActivityList = () => {
   //   // console.log(activities)
   //   console.log('there')
   // }, [activities]); 
-  console.log(activities)
+  // console.log(activities)
+  console.log(selectedRegistrationId)
 
   return (
     <div className="flex flex-col text-p1 space-y-4">
@@ -152,7 +195,13 @@ const ActivityList = () => {
           <h2 className="text-xl font-semibold mb-6">Activity: {activity.attributes.name} {availableSeats(activity)}</h2>
           <div className='grid grid-cols-4 gap-2'>
             <p className=" col-span-3 text-gray-600">Description: {activity.attributes.description}</p>
-            {activity.attributes.media.data && (
+            <button
+              className='bg-p1 text-p2 w-[12rem] h-[4rem] rounded-md '
+              onClick={() => {handleShowRegistration(activity.id);handleOpenPopup(selectedRegistrationId)}}
+            >
+                  Show registrations
+            </button>    
+            {/* {activity.attributes.media.data && (
               <motion.img
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
@@ -161,7 +210,7 @@ const ActivityList = () => {
                 src={`${process.env.NEXT_PUBLIC_API_URL}` + activity.attributes.media.data.attributes.formats.thumbnail.url}
                 >
               </motion.img>
-              )}
+              )} */}
           </div>
           <p>Start Date: {activity.attributes.startDate} End Date: {activity.attributes.endDate}</p>
           <p>Start time: {activity.attributes.startTime} End time: {activity.attributes.endTime}</p>
@@ -175,13 +224,9 @@ const ActivityList = () => {
                   <p>Available seats: {activity.attributes.availableSeats}</p>
                 </div>
                 {/* <button
-                  onClick={() => handleRegister(activity.id,null, null, activity.attributes.estimatedHoursEarned, activity.attributes.startDate + ' - ' + activity.attributes.endDate)}
-                  disabled={activity.attributes.availableSeats <= 0}
-                  className={`w-[6rem] ml-4 px-4 py-2 rounded ${
-                    activity.attributes.availableSeats === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-p2 text-black'
-                  }`}
+                  onClick={() => {handleShowRegistration(activity.id);handleOpenPopup(selectedRegistrationId)}}
                 >
-                  {activity.attributes.availableSeats === 0 ? 'Full' : 'Register'}
+                  Show registrations
                 </button>                 */}
               </div>
             )}
@@ -237,7 +282,7 @@ const ActivityList = () => {
                 <div className='collapse-content'>
                   <ul className="list-disc pl-4">
                     {activity.attributes.monthlyFields
-                      .filter((monthlyField) => new Date(monthlyField.monthName) >= new Date(filterStartDate) && new Date(monthlyField.monthName) <= new Date(filterEndDate))
+                      .filter((monthlyField) => new Date('01' + monthlyField.monthName) >= new Date(filterStartDate) && new Date('30' + monthlyField.monthName) <= new Date(filterEndDate))
                       .map((monthlyField, index) => (
                       <motion.li
                         key={monthlyField.id}
@@ -269,6 +314,40 @@ const ActivityList = () => {
           </div>
         </motion.div>
       ))}
+      {isPopupVisible && (
+        <div className='fixed top-0 left-0 right-0 bottom-0 bg-p1/70'>
+          {sortedRegistrations && (
+            <div className='w-[60rem] mx-auto bg-white p-8 pt-12'>
+              <table className='w-full text-left'>
+                <thead>
+                  <tr>
+                    <th>Activity Name</th>
+                    <th>Duration</th>
+                    <th>Email</th>
+                    <th>Username</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedRegistrations.map((registration, index) => (
+                    <tr key={index}>
+                      <td>{registration.attributes.activityId.data.attributes.name}</td>
+                      <td>{registration.attributes.duration}</td>
+                      <td>{registration.attributes.email.data.attributes.email}</td>
+                      <td>{registration.attributes.email.data.attributes.username}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <button
+                className='bg-p2 text-black m-8 px-4 py-2 rounded-md'
+                onClick={() => handleClosePopup()}
+              >
+                Close
+              </button>
+            </div>
+          )}         
+        </div>
+      )} 
     </div>
   );
 };

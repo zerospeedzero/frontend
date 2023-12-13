@@ -9,7 +9,7 @@ import { GiCancel } from "react-icons/gi";
 import axios from 'axios';
 import InfoBox from '@/components/Infobox';
 
-const ActivityList = () => {
+const ActivityList = ({userId}) => {
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [registrations, setRegistrations] = useState([]);
@@ -68,7 +68,7 @@ const ActivityList = () => {
     const fetchRegistrationData = async () => {
       try {
         // const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/registrations?populate=*`, {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/registrations?filters[email][id]=${session.id}&populate=*`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/registrations?filters[email][id]=${userId}&populate=*`, {
         // const response = await fetch('http://localhost:3337/api/registrations?filters[email][id]=22&populate=*', {
           headers: {
             Authorization: `Bearer ${session.jwt}`,
@@ -87,7 +87,7 @@ const ActivityList = () => {
   // console.log(activities)
   return (
     <div className="container mx-auto mt-8">
-      <h1 className="text-2xl font-bold mb-4">My registrations</h1>
+      <h1 className="text-2xl font-bold mb-4">Registrations</h1>
       <div className="grid grid-cols-1 gap-4">
         {registrations && registrations.map((registration, index) => (
           <motion.div key={registration.id} className="bg-white p-4 rounded shadow"
@@ -99,11 +99,6 @@ const ActivityList = () => {
               <p className='mb-4'>
                 <strong>Activity Name:</strong> {registration.attributes.activityId.data.attributes.name}
               </p>
-              <div className='absolute right-0 top-0'>
-                <GiCancel className='text-2xl cursor-pointer'
-                  onClick={() => {handleDelete(registration.id)} }
-                />
-              </div>
             </div>
             <p className='mb-4'>
               <strong>Activity Description:</strong>{' '}
@@ -117,12 +112,6 @@ const ActivityList = () => {
               <p><strong>Required Hours:</strong> {registration.attributes.requiredHours}</p>
               <p><strong>Reported Hours:</strong> {registration.attributes.reportedHours}</p>
               <p><strong>Left Hours:</strong> {registration.attributes.requiredHours - registration.attributes.reportedHours}</p>
-              <button className='w-[6rem] bg-p1/80  text-p2 hover:bg-p1 text-white font-bold py-1 px-2 rounded'
-                // onClick={() => {handleOpenPopup(registration.id) }}
-                onClick={() => {setSelectedRegistrationId(registration.id); setTimeout(() => {handleOpenPopup(registration.id)}, 500)}}
-              >
-                Report
-              </button>
             </div>
             {isPopupVisible && (
               <ReportHoursPopup

@@ -5,8 +5,9 @@ import { motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import Spinner from './Spinner';
 import axios from 'axios';
-
+import { useRouter } from 'next/navigation';
 const ActivityList = () => {
+  const router = useRouter();
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [activities, setActivities] = useState([]);
@@ -79,6 +80,7 @@ const ActivityList = () => {
       });
       // console.log(response.data);
       setRefresh(!refresh)
+      router.push('/dashboard/users/my')
     } catch (error) {
       console.error('Error submitting form:', error);
     }
@@ -142,14 +144,14 @@ const ActivityList = () => {
           <h2 className="text-xl font-semibold mb-6">Activity: {activity.attributes.name} {availableSeats(activity)}</h2>
           <div className='grid grid-cols-4 gap-2'>
             <p className=" col-span-3 text-gray-600">Description: {activity.attributes.description}</p>
-            <motion.img
+            {/* <motion.img
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ delay: (0.5 ), duration: 0.8 }}
               className='col-span-1 rounded-lg shadow-md justify-self-end p-2 bg-white'
               src={`${process.env.NEXT_PUBLIC_API_URL}` + activity.attributes.media.data.attributes.formats.thumbnail.url}
             >
-            </motion.img>
+            </motion.img> */}
           </div>
           <p>Start Date: {activity.attributes.startDate} End Date: {activity.attributes.endDate}</p>
           <p>Start time: {activity.attributes.startTime} End time: {activity.attributes.endTime}</p>
@@ -175,7 +177,7 @@ const ActivityList = () => {
             )}
             {/* Weekly Fields */}
             {activity.attributes.weeklyFields && activity.attributes.weeklyFields.length > 0 && (
-              <div className='collapse  border border-gray-200 bg-p1/400'>
+              <div className='collapse  border border-gray-200 bg-p1/400 rounded-md'>
                 <input type="checkbox"/>
                 <div className='collapse-title collapse-plus flex flex-row justify-between items-center rounded-none mb-2 bg-p1/20'>
                   <h3 className="text-lg font-semibold mb-2">Weekly slots</h3>
@@ -218,14 +220,14 @@ const ActivityList = () => {
             {activity.attributes.monthlyFields && activity.attributes.monthlyFields.length > 0 && (
               <div className='collapse  border border-gray-200 bg-p1/400 rounded-md' >
                 <input type="checkbox"/> 
-                <div className='collapse-title  flex flex-row justify-between items-center rounded-none mb-2 bg-p1/20'>
+                <div className='collapse-title collapse-plus  flex flex-row justify-between items-center rounded-none mb-2 bg-p1/20'>
                   <h3 className="text-lg font-semibold  py-0 mb-2 mt-2">Monthly slots</h3>
                   <BiExpandVertical/>
                 </div>
                 <div className='collapse-content'>
                   <ul className="list-disc pl-4">
                     {activity.attributes.monthlyFields
-                      .filter((monthlyField) => new Date(monthlyField.monthName) >= new Date(filterStartDate) && new Date(monthlyField.monthName) <= new Date(filterEndDate))
+                      .filter((monthlyField) => new Date('01' + monthlyField.monthName) >= new Date(filterStartDate) && new Date('30' + monthlyField.monthName) <= new Date(filterEndDate))
                       .map((monthlyField, index) => (
                       <motion.li
                         key={monthlyField.id}

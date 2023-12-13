@@ -9,22 +9,24 @@ const NavBar = () => {
   React.useEffect(() => {
     setSessionData(session);
   }, [session]);
+  console.log(sessionData);
   return (
     <>
-      <motion.div className='w-[16rem]  min-h-screen p-8 mr-4 flex flex-col start items-start space-y-5 bg-white text-p1 font-semibold'
-        // initial={{ opacity: 0, x: -100 }}
-        // animate={{ opacity: 1, x: 0 }}
-        // transition={{ delay: 2.2, duration: 1 }}
+      <motion.div className='w-[16rem]   h-[30rem] rounded-br-[20rem] p-8 mr-4 flex flex-col start items-start space-y-5 bg-white text-p1 font-semibold'
+        initial={{ opacity: 0, x: -100 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.1, duration: 1 }}
       >
-        <h2 className='text-bold text-xl text-start'>Home {sessionData && sessionData.user.data.role.name == 'superuser' && ('- Admin')}</h2>
+        {/* <h2 className='text-bold text-xl text-start'>Home {sessionData && sessionData.user && sessionData.user.data.role.name == 'superuser' && ('- Admin')}</h2> */}
+        <h2 className='text-bold text-xl text-start'>Home {sessionData && sessionData.user && sessionData.user.data.role.name == 'superuser' && ('- Admin')}</h2>
         <ul className='text-md space-y-4'>
           {sessionData && sessionData.user.data.role.name == 'superuser' ? (
             <>
               <Link href={'/dashboard/admin'}>
-                <li className='cursor-pointer hover:text-s1 mb-2'>Activities</li>
+                <li className='cursor-pointer hover:text-s1 mb-2'>Volunteers's Activities</li>
               </Link>
-              <Link href={'/underconstruction'}>
-                <li className='cursor-pointer hover:text-s1'>Reports</li>
+              <Link href={'/dashboard/admin/hoursReport'}>
+                <li className='cursor-pointer hover:text-s1'>Hours Report</li>
               </Link>          
             </>
           ) : (
@@ -43,12 +45,12 @@ const NavBar = () => {
         </ul>
         <div className='border-b-1'></div>
         <ul className='text-md space-y-2'>
-          <Link href={'/pdfviewer'}>
+          <a href={'/pdfviewer'} target="_blank">
             <li className='cursor-pointer hover:text-s1 mb-2'>Instruction pdf</li>
-          </Link>
-          <Link href={'/brandguide'}>
+          </a>
+          <a href={'/brandguide'} target='_blank'>
             <li className='cursor-pointer hover:text-s1 mb-2'>Design reference</li>
-          </Link>          
+          </a>          
           <Link href={'/about'}>
             <li className='cursor-pointer hover:text-s1 mb-2'>About</li>
           </Link>
